@@ -19,11 +19,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#[cfg(not(any(feature = "base64", feature = "base85")))]
-compile_error!("either base64 or base85 feature must be specified, you provide none of them.");
+#[cfg(not(any(feature = "baid64", feature = "base85")))]
+compile_error!("either baid64 or base85 feature must be specified, you provide none of them.");
 
-#[cfg(all(feature = "base64", feature = "base85"))]
-compile_error!("either base64 or base85 feature must be specified, you provide both of them.");
+#[cfg(all(feature = "baid64", feature = "base85"))]
+compile_error!("either baid64 or base85 feature must be specified, you provide both of them.");
 
 #[macro_use]
 extern crate amplify;
@@ -33,6 +33,7 @@ use core::str::FromStr;
 
 #[cfg(feature = "strict")]
 use amplify::confinement::U24 as U24MAX;
+#[cfg(feature = "strict")]
 use amplify::confinement::{self, Confined};
 use amplify::num::u24;
 use amplify::{Bytes32, hex};
@@ -69,10 +70,10 @@ impl<'a, A: AsciiArmor> Display for DisplayAsciiArmored<'a, A> {
 
         #[cfg(feature = "base85")]
         let data = base85::encode(&data);
-        #[cfg(feature = "base64")]
+        #[cfg(feature = "baid64")]
         let data = {
-            use base64::Engine;
-            base64::prelude::BASE64_STANDARD.encode(&data)
+            use baid64::base64::Engine;
+            baid64::base64::prelude::BASE64_STANDARD.encode(&data)
         };
         let mut data = data.as_str();
         while data.len() >= 80 {
@@ -198,7 +199,7 @@ pub trait AsciiArmor: Sized {
     const PLATE_TITLE: &'static str;
 
     fn to_ascii_armored_string(&self) -> String { format!("{}", self.display_ascii_armored()) }
-    fn display_ascii_armored(&self) -> DisplayAsciiArmored<Self> { DisplayAsciiArmored(self) }
+    fn display_ascii_armored(&self) -> DisplayAsciiArmored<'_, Self> { DisplayAsciiArmored(self) }
     fn ascii_armored_headers(&self) -> Vec<ArmorHeader> { none!() }
     fn ascii_armored_digest(&self) -> Option<Bytes32> { DisplayAsciiArmored(self).data_digest().1 }
     fn to_ascii_armored_data(&self) -> Vec<u8>;
@@ -234,7 +235,7 @@ pub trait AsciiArmor: Sized {
         }
         #[cfg(feature = "base85")]
         let data = base85::decode(&armor).map_err(|_| ArmorParseError::Base85)?;
-        #[cfg(feature = "base64")]
+        #[cfg(feature = "baid64")]
         let data = {
             use baid64::base64::Engine;
             baid64::base64::prelude::BASE64_STANDARD
@@ -266,7 +267,6 @@ pub enum StrictArmorError {
     /// multiple Id headers.
     MultipleIds,
 
-    #[cfg(feature = "baid64")]
     /// Id header of the ASCII armor contains unparsable information. Details: {0}
     #[from]
     InvalidId(baid64::Baid64ParseError),
@@ -390,7 +390,7 @@ mod test {
     #[cfg(feature = "strict")]
     #[test]
     fn strict_format() {
-        use strict_encoding::{StrictDecode, StrictEncode, StrictType};
+        use strict_encoding::{DefaultBasedStrictDumb, StrictDecode, StrictEncode, StrictType};
 
         #[derive(
             Copy,
@@ -409,6 +409,7 @@ mod test {
         pub struct Sid {
             inner: u8,
         }
+        impl DefaultBasedStrictDumb for Sid {}
         impl FromStr for Sid {
             type Err = baid64::Baid64ParseError;
             fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -423,6 +424,7 @@ mod test {
         struct S {
             inner: u8,
         }
+        impl DefaultBasedStrictDumb for S {}
         impl StrictSerialize for S {}
         impl StrictDeserialize for S {}
         impl StrictArmor for S {
@@ -448,7 +450,7 @@ Check-SHA256: 6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d
 "#
             )
         );
-        #[cfg(feature = "base64")]
+        #[cfg(feature = "baid64")]
         assert_eq!(
             s.to_ascii_armored_string(),
             format!(
@@ -481,7 +483,7 @@ Check-SHA256: 6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01e
             )
             .is_err()
         );
-        #[cfg(feature = "base64")]
+        #[cfg(feature = "baid64")]
         assert!(
             S::from_ascii_armored_str(
                 r#"-----BEGIN S-----
@@ -513,7 +515,7 @@ Check-SHA256: {}
             ))
             .is_err()
         );
-        #[cfg(feature = "base64")]
+        #[cfg(feature = "baid64")]
         assert!(
             S::from_ascii_armored_str(&format!(
                 r#"-----BEGIN S-----

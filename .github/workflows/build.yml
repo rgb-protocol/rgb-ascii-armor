@@ -28,9 +28,9 @@ jobs:
       fail-fast: false
       matrix:
         feature:
-          - base64
+          - baid64
           - base85
-          - strict,base64
+          - strict,baid64
           - strict,base85
     steps:
       - uses: actions/checkout@v4
@@ -42,7 +42,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04, ubuntu-latest, macos-13, macos-latest, windows-2019, windows-latest ]
+        os: [ ubuntu-22.04, ubuntu-latest, macos-13, macos-latest, windows-2022, windows-latest ]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
