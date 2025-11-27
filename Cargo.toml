@@ -1,6 +1,6 @@
 [package]
 name = "rgb-ascii-armor"
-version = "0.9.0"
+version = "1.0.0"
 description = "ASCII Armor: binary to text encoding library and command-line utility"
 keywords = ["ascii", "encoding"]
 categories = ["encoding", "value-formatting", "command-line-utilities"]
@@ -40,6 +40,3 @@ strict = [
     "rgb-strict-encoding",
     "dep:baid64",
 ]
-
-[patch.crates-io]
-rgb-strict-encoding = { git = "http://github.com/rgb-protocol/rgb-strict-encoding", branch = "master"}
