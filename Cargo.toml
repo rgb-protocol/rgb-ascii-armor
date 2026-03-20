@@ -40,6 +40,3 @@ strict = [
     "rgb-strict-encoding",
     "dep:baid64",
 ]
-
-[patch.crates-io]
-rgb-strict-encoding = { git = "https://github.com/rgb-protocol/rgb-strict-encoding", branch = "master" }
