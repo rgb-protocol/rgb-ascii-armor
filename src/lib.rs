@@ -439,8 +439,7 @@ mod test {
         #[cfg(feature = "base85")]
         assert_eq!(
             s.to_ascii_armored_string(),
-            format!(
-                r#"-----BEGIN S-----
+            r#"-----BEGIN S-----
 Id: 0
 Check-SHA256: 6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d
 
@@ -448,13 +447,11 @@ Check-SHA256: 6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d
 
 -----END S-----
 "#
-            )
         );
         #[cfg(feature = "baid64")]
         assert_eq!(
             s.to_ascii_armored_string(),
-            format!(
-                r#"-----BEGIN S-----
+            r#"-----BEGIN S-----
 Id: 0
 Check-SHA256: 6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d
 
@@ -462,7 +459,6 @@ AA==
 
 -----END S-----
 "#
-            )
         );
 
         assert_eq!(display_ascii_armored.data_digest().0, vec![0]);
