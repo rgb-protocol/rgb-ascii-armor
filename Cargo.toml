@@ -4,7 +4,6 @@ version = "1.0.2"
 description = "ASCII Armor: binary to text encoding library and command-line utility"
 keywords = ["ascii", "encoding"]
 categories = ["encoding", "value-formatting", "command-line-utilities"]
-readme = "README.md"
 authors = ["Zoe Faltibà <zoefaltiba@gmail.com>"]
 repository = "https://github.com/rgb-protocol/rgb-ascii-armor"
 rust-version = "1.85.0"
