@@ -32,16 +32,19 @@ use core::fmt::{self, Debug, Display, Formatter};
 use core::str::FromStr;
 
 #[cfg(feature = "strict")]
-use amplify::confinement::U24 as U24MAX;
-#[cfg(feature = "strict")]
 use amplify::confinement::{self, Confined};
-use amplify::num::u24;
 use amplify::{Bytes32, hex};
 use sha2::{Digest, Sha256};
 #[cfg(feature = "strict")]
 use strict_encoding::{StrictDeserialize, StrictSerialize};
 
-pub const ASCII_ARMOR_MAX_LEN: usize = u24::MAX.to_usize();
+/// Maximum size of an ASCII-armored container.
+///
+/// Rendering armor holds the serialized container, its base85 (or, with `baid64`, base64) encoding
+/// and the formatted output in memory at once, so this bound also caps the peak cost of rendering a
+/// container. Parsing is not bounded by it: the whole armored body is decoded before the size
+/// check.
+pub const ASCII_ARMOR_MAX_LEN: usize = 64 * 1024 * 1024;
 pub const ASCII_ARMOR_ID: &str = "Id";
 pub const ASCII_ARMOR_CHECKSUM_SHA256: &str = "Check-SHA256";
 
@@ -282,7 +285,7 @@ pub enum StrictArmorError {
     #[from]
     Deserialize(strict_encoding::DeserializeError),
 
-    /// ASCII armor contains more than 16MB of data.
+    /// ASCII armor exceeds the maximum container size.
     #[from(confinement::Error)]
     TooLarge,
 
@@ -319,7 +322,9 @@ where T: StrictArmor
     }
 
     fn to_ascii_armored_data(&self) -> Vec<u8> {
-        self.to_strict_serialized::<U24MAX>().expect("data too large for ASCII armoring").release()
+        self.to_strict_serialized::<ASCII_ARMOR_MAX_LEN>()
+            .expect("data too large for ASCII armoring")
+            .release()
     }
 
     fn with_headers_data(headers: Vec<ArmorHeader>, data: Vec<u8>) -> Result<Self, Self::Err> {
@@ -331,8 +336,8 @@ where T: StrictArmor
         }
         let expected = T::Id::from_str(&id.values[0]).map_err(StrictArmorError::from)?;
         let data = Confined::try_from(data).map_err(StrictArmorError::from)?;
-        let mut me =
-            Self::from_strict_serialized::<U24MAX>(data).map_err(StrictArmorError::from)?;
+        let mut me = Self::from_strict_serialized::<ASCII_ARMOR_MAX_LEN>(data)
+            .map_err(StrictArmorError::from)?;
         me.parse_armor_headers(headers)?;
         let actual = me.armor_id();
         if expected != actual {
